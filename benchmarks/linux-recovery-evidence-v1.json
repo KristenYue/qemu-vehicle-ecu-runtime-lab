@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "environment": "linux-x86_64",
+  "cases": {
+    "dependency_ready_order": {
+      "passed": true,
+      "events": [
+        {"ts_ms": 25727, "event": "started", "app": "health-service", "pid": "2498", "restart_count": "0"},
+        {"ts_ms": 25728, "event": "ready", "app": "health-service", "pid": "2498"},
+        {"ts_ms": 25728, "event": "started", "app": "vehicle-client", "pid": "2499", "restart_count": "0"},
+        {"ts_ms": 25729, "event": "ready", "app": "vehicle-client", "pid": "2499"},
+        {"ts_ms": 25729, "event": "exited", "app": "vehicle-client", "pid": "2499", "exit_code": "0", "signal": "0"},
+        {"ts_ms": 26329, "event": "exited", "app": "health-service", "pid": "2498", "exit_code": "0", "signal": "0"}
+      ]
+    },
+    "crash_once_recovery": {
+      "passed": true,
+      "metrics": {"fault_to_restart_schedule_ms": 0, "fault_to_recovered_ready_ms": 200},
+      "events": [
+        {"ts_ms": 26331, "event": "started", "app": "recovery-service", "pid": "2501", "restart_count": "0"},
+        {"ts_ms": 26333, "event": "exited", "app": "recovery-service", "pid": "2501", "exit_code": "42", "signal": "0"},
+        {"ts_ms": 26333, "event": "restart_scheduled", "app": "recovery-service", "delay_ms": "100", "restart_count": "1"},
+        {"ts_ms": 26532, "event": "started", "app": "recovery-service", "pid": "2502", "restart_count": "1"},
+        {"ts_ms": 26533, "event": "ready", "app": "recovery-service", "pid": "2502"},
+        {"ts_ms": 27134, "event": "exited", "app": "recovery-service", "pid": "2502", "exit_code": "0", "signal": "0"}
+      ]
+    },
+    "hang_once_recovery": {
+      "passed": true,
+      "metrics": {"fault_to_restart_schedule_ms": 1, "fault_to_recovered_ready_ms": 202},
+      "events": [
+        {"ts_ms": 27136, "event": "started", "app": "recovery-service", "pid": "2505", "restart_count": "0"},
+        {"ts_ms": 27137, "event": "ready", "app": "recovery-service", "pid": "2505"},
+        {"ts_ms": 27536, "event": "unhealthy", "app": "recovery-service", "reason": "heartbeat_timeout"},
+        {"ts_ms": 27537, "event": "exited", "app": "recovery-service", "pid": "2505", "exit_code": "-1", "signal": "9"},
+        {"ts_ms": 27537, "event": "restart_scheduled", "app": "recovery-service", "delay_ms": "100", "restart_count": "1"},
+        {"ts_ms": 27737, "event": "started", "app": "recovery-service", "pid": "2506", "restart_count": "1"},
+        {"ts_ms": 27738, "event": "ready", "app": "recovery-service", "pid": "2506"},
+        {"ts_ms": 28339, "event": "exited", "app": "recovery-service", "pid": "2506", "exit_code": "0", "signal": "0"}
+      ]
+    }
+  }
+}

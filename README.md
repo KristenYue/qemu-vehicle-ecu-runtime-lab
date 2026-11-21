@@ -94,6 +94,8 @@ python3 scripts/run_linux_recovery_evidence.py \
 
 脚本验证三个独立进程级场景：依赖服务必须在上游 READY 后启动；服务首次异常退出后按预算恢复；服务首次停止心跳后被判定为 `UNHEALTHY`、终止并恢复。报告保留事件顺序和单调时钟差值。只有真实 Linux 执行成功后，报告数字才能进入项目结论。
 
+GitHub Actions `ubuntu-24.04` 首轮实测三类场景全部通过：crash 进程以退出码 42 终止，从回收到新进程 READY 为 200 ms；hang 进程因心跳超时被标记为 `UNHEALTHY` 并收到 SIGKILL，从异常判定到新进程 READY 为 202 ms。它们是单次 x86_64 CI 结果，不是统计分位数或硬实时保证。原始结果与边界见[恢复证据说明](docs/RECOVERY_EVIDENCE.md)。
+
 ## 下一验收点
 
 1. 结构化 JSONL 事件日志与 crash/hang 故障报告；

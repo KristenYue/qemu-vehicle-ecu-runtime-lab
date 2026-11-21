@@ -1,6 +1,7 @@
 .runtime/
 build/
 out/
+artifacts/
 *.log
 *.obj
 *.exe
