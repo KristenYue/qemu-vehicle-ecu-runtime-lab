@@ -5,12 +5,14 @@ restart=on-failure
 max_restarts=3
 restart_backoff_ms=100
 start_timeout_ms=2000
+heartbeat_timeout_ms=500
 
 [vehicle-client]
 command=./vecu_vehicle_client
 depends=health-service
-restart=never
-max_restarts=0
+restart=on-failure
+max_restarts=2
 restart_backoff_ms=100
 start_timeout_ms=2000
+heartbeat_timeout_ms=500
 

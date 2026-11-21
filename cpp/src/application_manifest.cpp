@@ -106,6 +106,8 @@ std::vector<ApplicationManifest> parse_manifest(const std::filesystem::path& pat
             current->restart_backoff_ms = parse_u32(value, key, line_number);
         } else if (key == "start_timeout_ms") {
             current->start_timeout_ms = parse_u32(value, key, line_number);
+        } else if (key == "heartbeat_timeout_ms") {
+            current->heartbeat_timeout_ms = parse_u32(value, key, line_number);
         } else {
             throw std::runtime_error("line " + std::to_string(line_number) + ": unknown field " + key);
         }
@@ -117,6 +119,9 @@ std::vector<ApplicationManifest> parse_manifest(const std::filesystem::path& pat
     for (const auto& app : applications) {
         if (app.command.empty()) {
             throw std::runtime_error("application " + app.name + " has no command");
+        }
+        if (app.start_timeout_ms == 0 || app.heartbeat_timeout_ms == 0) {
+            throw std::runtime_error("application " + app.name + " has a zero health timeout");
         }
         for (const auto& dependency : app.dependencies) {
             if (!names.contains(dependency)) {

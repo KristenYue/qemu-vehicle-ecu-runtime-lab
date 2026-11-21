@@ -17,6 +17,7 @@ struct ApplicationManifest {
     std::uint32_t max_restarts{0};
     std::uint32_t restart_backoff_ms{100};
     std::uint32_t start_timeout_ms{2000};
+    std::uint32_t heartbeat_timeout_ms{1000};
 };
 
 std::vector<ApplicationManifest> parse_manifest(const std::filesystem::path& path);

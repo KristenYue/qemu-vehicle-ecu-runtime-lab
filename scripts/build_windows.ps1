@@ -24,7 +24,8 @@ foreach ($line in $environmentLines) {
 Push-Location $repositoryRoot
 try {
     & cl.exe /nologo /std:c++20 /EHsc /W4 /permissive- /Z7 /Icpp\include `
-        cpp\src\application_manifest.cpp cpp\src\dependency_graph.cpp cpp\tests\test_core.cpp `
+        cpp\src\application_manifest.cpp cpp\src\dependency_graph.cpp cpp\src\heartbeat_protocol.cpp `
+        cpp\tests\test_core.cpp `
         /Fe"$runtimeDirectory\vecu_core_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw "Native compile failed." }
     & "$runtimeDirectory\vecu_core_tests.exe"

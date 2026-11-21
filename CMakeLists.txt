@@ -14,6 +14,7 @@ endif()
 add_library(vecu_core
   cpp/src/application_manifest.cpp
   cpp/src/dependency_graph.cpp
+  cpp/src/heartbeat_protocol.cpp
 )
 target_include_directories(vecu_core PUBLIC cpp/include)
 
@@ -30,6 +31,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
   add_executable(vecu_health_service cpp/apps/health_service.cpp)
   add_executable(vecu_vehicle_client cpp/apps/vehicle_client.cpp)
+  target_link_libraries(vecu_health_service PRIVATE vecu_core)
+  target_link_libraries(vecu_vehicle_client PRIVATE vecu_core)
 endif()
 
 enable_testing()

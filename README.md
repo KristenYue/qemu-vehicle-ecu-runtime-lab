@@ -9,11 +9,12 @@
 - 定义版本化应用 manifest，包含命令、依赖、启动超时和受控重启策略；
 - 实现严格解析和校验：拒绝重复应用、未知字段、非法数值、缺失命令和未知依赖；
 - 实现稳定拓扑排序和依赖环检测；
-- 实现 Linux Execution Manager 初版：`posix_spawnp`、`signalfd(SIGCHLD)`、`epoll`、`timerfd`、子进程回收、退出原因记录、指数退避和重启预算；
+- 实现 Linux Execution Manager：`posix_spawnp`、`signalfd(SIGCHLD)`、`epoll`、`timerfd`、子进程回收、退出原因记录、指数退避和重启预算；
+- 实现有界 UDS 心跳协议、应用身份/PID 校验、`STARTING/READY/UNHEALTHY` 状态、启动超时与卡死检测；依赖应用只有在上游 READY 后才启动；
 - 提供两个受管示例进程，验证依赖顺序、异常退出和恢复；
 - 核心 manifest/依赖图逻辑支持 Windows 与 Linux 构建，Linux 负责真实进程生命周期集成。
 
-当前还没有完成 QEMU/ARM64、Buildroot、UDS 心跳、hang 检测、cgroups 或第一项目车辆服务接入。README 只陈述已经落地的能力，不把后续规划写成完成项。
+当前还没有完成 QEMU/ARM64、Buildroot、cgroups 或第一项目车辆服务接入。README 只陈述已经落地的能力，不把后续规划写成完成项。
 
 ## 运行模型
 
@@ -42,14 +43,16 @@ restart=on-failure
 max_restarts=3
 restart_backoff_ms=100
 start_timeout_ms=2000
+heartbeat_timeout_ms=500
 
 [vehicle-client]
 command=./vecu_vehicle_client
 depends=health-service
-restart=never
-max_restarts=0
+restart=on-failure
+max_restarts=2
 restart_backoff_ms=100
 start_timeout_ms=2000
+heartbeat_timeout_ms=500
 ```
 
 命令使用空格分词，当前不实现 shell 引号和重定向，避免隐式调用 shell。应用名和依赖必须在同一文件内唯一且可解析。
@@ -75,14 +78,14 @@ Windows 当前只构建可移植核心与测试：
 ## 工程边界
 
 - 这是面向 vECU 的系统软件实验室，不是量产 ECU 或 AUTOSAR Execution Management 实现；
-- 当前进程“运行”只表示成功创建且尚未退出，不等于应用完成业务就绪；P1 将使用 UDS 心跳协议区分 `STARTING/READY/UNHEALTHY`；
+- READY 仅表示应用完成项目心跳协议握手，不等于所有业务依赖已经通过深度健康检查；
 - 当前重启预算仅保存在单次 Execution Manager 进程内，不声称跨重启持久化；
 - QEMU 软件仿真数据不会包装成真实 ARM64 硬件性能。
 
 ## 下一验收点
 
-1. UDS 心跳、ready 协议和 hang 检测；
-2. 结构化事件日志与 crash/hang 故障报告；
-3. 将第一项目的一个只读车辆状态服务作为真实受管应用；
-4. Buildroot ARM64 镜像与 QEMU `virt` 集成测试。
+1. 结构化 JSONL 事件日志与 crash/hang 故障报告；
+2. 将第一项目的一个只读车辆状态服务作为真实受管应用；
+3. Buildroot ARM64 镜像与 QEMU `virt` 集成测试；
+4. x86_64 与 QEMU ARM64 双环境故障恢复证据。
 
