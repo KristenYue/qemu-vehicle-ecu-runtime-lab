@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -40,7 +41,7 @@ def main() -> int:
     args = parser.parse_args()
 
     kernel = args.images / "Image"
-    rootfs_candidates = [args.images / "rootfs.ext4", args.images / "rootfs.ext2"]
+    rootfs_candidates = [args.images / "rootfs.ext2", args.images / "rootfs.ext4"]
     rootfs = next((candidate for candidate in rootfs_candidates if candidate.exists()), None)
     if not kernel.exists() or rootfs is None:
         raise FileNotFoundError(f"missing Buildroot images in {args.images}")
@@ -63,10 +64,29 @@ def main() -> int:
         timeout=120, check=False,
     )
     serial = completed.stdout
+
+    def fail(message: str) -> None:
+        failure = {
+            "schema_version": 1,
+            "passed": False,
+            "failure": message,
+            "qemu_returncode": completed.returncode,
+            "qemu_command": command,
+            "serial_output": serial,
+        }
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(failure, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"QEMU_COMMAND={shlex.join(command)}")
+        print(f"QEMU_RETURNCODE={completed.returncode}")
+        print("QEMU_SERIAL_BEGIN")
+        print(serial)
+        print("QEMU_SERIAL_END")
+        raise AssertionError(message)
+
     if "VECU_ARCH=aarch64" not in serial:
-        raise AssertionError("guest did not report aarch64 architecture")
+        fail("guest did not report aarch64 architecture")
     if "VECU_EVIDENCE_COMPLETE" not in serial or "VECU_MANAGER_EXIT=0" not in serial:
-        raise AssertionError(f"guest evidence did not complete; return={completed.returncode}\n{serial}")
+        fail("guest evidence did not complete")
 
     events = parse_events(serial)
     first_ready = require_event(events, "ready", 1)

@@ -51,16 +51,16 @@ jobs:
       - shell: pwsh
         run: .\scripts\build_windows.ps1
 
-  arm64-vecu:
+  arm64-image:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Install ARM64 and QEMU dependencies
+      - name: Install ARM64 and Buildroot dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            g++-aarch64-linux-gnu qemu-system-arm bc bison build-essential cpio file flex \
+            g++-aarch64-linux-gnu bc bison build-essential cpio file flex \
             libelf-dev libncurses-dev libssl-dev rsync unzip wget
       - name: Cross-compile static ARM64 runtime
         run: |
@@ -96,12 +96,36 @@ jobs:
           make -C buildroot-src O=${{ github.workspace }}/buildroot-output \
             BR2_DL_DIR=${{ github.workspace }}/buildroot-dl \
             BR2_CCACHE_DIR=$HOME/.buildroot-ccache -j2
+      - name: Publish reproducible ARM64 boot images
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-arm64-images
+          path: |
+            buildroot-output/images/Image
+            buildroot-output/images/rootfs.ext2
+
+  arm64-vecu:
+    needs: arm64-image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-arm
+      - name: Download reproducible ARM64 boot images
+        uses: actions/download-artifact@v4
+        with:
+          name: qemu-arm64-images
+          path: arm64-images
       - name: Boot QEMU ARM64 and collect recovery evidence
         run: >-
           python3 scripts/run_qemu_arm64_evidence.py
-          --images ${{ github.workspace }}/buildroot-output/images
+          --images ${{ github.workspace }}/arm64-images
           --output ${{ github.workspace }}/artifacts/qemu-arm64-recovery-evidence.json
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: qemu-arm64-recovery-evidence
           path: artifacts/qemu-arm64-recovery-evidence.json
