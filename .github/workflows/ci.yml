@@ -78,7 +78,7 @@ jobs:
           path: |
             buildroot-dl
             ~/.buildroot-ccache
-          key: buildroot-2026.08.2-aarch64-virt-v1
+          key: buildroot-2026.08.2-aarch64-virt-bootlin-v1
       - name: Prepare ARM64 root filesystem overlay
         run: |
           bash scripts/prepare_arm64_rootfs_overlay.sh \
@@ -86,8 +86,12 @@ jobs:
       - name: Build minimal ARM64 Linux image
         run: |
           make -C buildroot-src O=${{ github.workspace }}/buildroot-output qemu_aarch64_virt_defconfig
-          sed -i '/^BR2_ROOTFS_OVERLAY=/d' buildroot-output/.config
-          echo 'BR2_ROOTFS_OVERLAY="${{ github.workspace }}/buildroot-work-overlay"' >> buildroot-output/.config
+          buildroot-src/utils/config --file buildroot-output/.config \
+            --enable BR2_TOOLCHAIN_EXTERNAL \
+            --enable BR2_TOOLCHAIN_EXTERNAL_BOOTLIN \
+            --enable BR2_TOOLCHAIN_EXTERNAL_BOOTLIN_AARCH64_GLIBC_STABLE \
+            --enable BR2_TOOLCHAIN_EXTERNAL_DOWNLOAD \
+            --set-str BR2_ROOTFS_OVERLAY "${{ github.workspace }}/buildroot-work-overlay"
           make -C buildroot-src O=${{ github.workspace }}/buildroot-output olddefconfig
           make -C buildroot-src O=${{ github.workspace }}/buildroot-output \
             BR2_DL_DIR=${{ github.workspace }}/buildroot-dl \

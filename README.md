@@ -4,7 +4,7 @@
 
 项目主语是：**在 ARM64 嵌入式 Linux/vECU 环境中研发 Execution Manager，管理车载应用的依赖启动、进程生命周期、健康状态、故障恢复与系统证据。** QEMU 和 Buildroot 是可复现运行环境，不是项目唯一成果。
 
-## 当前完成：P0 第一纵切
+## 当前状态：核心纵切已实现，ARM64/QEMU 验收中
 
 - 定义版本化应用 manifest，包含命令、依赖、启动超时和受控重启策略；
 - 实现严格解析和校验：拒绝重复应用、未知字段、非法数值、缺失命令和未知依赖；
@@ -14,10 +14,16 @@
 - 提供两个受管示例进程，验证依赖顺序、异常退出和恢复；
 - 提供正常依赖启动、首次 crash 恢复、首次 hang 恢复三类 Linux 自动化证据场景，并记录故障到重新 READY 的时序；
 - 使用通用 Managed Process Adapter 管理第一项目的真实 SOME/IP 车辆状态服务；适配器负责 READY 探测、心跳代理和父进程死亡时的服务树回收，不复制车辆服务实现；
-- 固定 Buildroot 2026.08.2，交叉编译静态 AArch64 Execution Manager 与故障服务，并在 QEMU `virt`/Cortex-A53 上自动执行启动、心跳超时、重启和关机证据链；
+- 固定 Buildroot 2026.08.2，交叉编译静态 AArch64 Execution Manager 与故障服务，并提供 QEMU `virt`/Cortex-A53 启动、心跳超时、重启和关机的自动验收链路；真实 ARM64 结果只在 CI 成功并冻结原始报告后写入结论；
 - 核心 manifest/依赖图逻辑支持 Windows 与 Linux 构建，Linux 负责真实进程生命周期集成。
 
-当前还没有完成 QEMU/ARM64、Buildroot、cgroups 或第一项目车辆服务接入。README 只陈述已经落地的能力，不把后续规划写成完成项。
+第一项目真实车辆服务接入已经通过 Linux 跨仓库 CI。QEMU/ARM64 正在完成首次端到端验收；README 不把“代码已写”包装成“目标环境已验证”。
+
+## 项目范围
+
+本项目只围绕一条核心链路展开：**ARM64 Linux 启动 → Execution Manager 管理应用 → crash/hang 检测 → 受控恢复 → 原始证据留存。**
+
+必做范围是 Buildroot/QEMU 环境、C++ 进程生命周期、依赖启动、UDS 心跳、超时与重启策略。多 ECU、自定义 MMIO、Device Tree/platform driver、eBPF 不在项目范围内；cgroups、perf/ftrace 不再作为完成项目的前置条件。已有能力进入稳定和学习阶段，不再用横向功能数量衡量项目强度。
 
 ## 运行模型
 
@@ -102,8 +108,8 @@ GitHub Actions `ubuntu-24.04` 首轮实测三类场景全部通过：crash 进�
 
 ## 下一验收点
 
-1. 结构化 JSONL 事件日志与 crash/hang 故障报告；
-2. 冻结 QEMU ARM64 原始串口报告并记录镜像、内核和二进制摘要；
-3. x86_64 与 QEMU ARM64 双环境故障恢复对照；
-4. cgroups v2 资源上限与观测。
+1. 跑通并冻结 QEMU ARM64 原始串口报告，记录镜像、内核和二进制摘要；
+2. 对照 x86_64 与 QEMU ARM64 的故障恢复事件，但不把 TCG 时延包装成硬件性能；
+3. 完成核心设计说明、源码阅读路径和可复现实验，使实现能够被独立解释、修改和测试；
+4. 停止横向扩展，后续只修复影响核心链路、复现性和面试可解释性的问题。
 
