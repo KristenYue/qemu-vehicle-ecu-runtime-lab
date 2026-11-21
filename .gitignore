@@ -1,0 +1,7 @@
+.runtime/
+build/
+out/
+*.log
+*.obj
+*.exe
+
