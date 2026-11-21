@@ -72,7 +72,7 @@ jobs:
       - name: Checkout pinned Buildroot stable release
         run: |
           git clone --depth 1 --branch 2026.08.2 https://gitlab.com/buildroot.org/buildroot.git buildroot-src
-          test "$(git -C buildroot-src rev-parse HEAD)" = "9f070abfd764ade65c02bd9fb483e6121c418dda"
+          test "$(git -C buildroot-src rev-parse HEAD)" = "cd8011d7c9965e1bcfc9c18d4272943f9c333b68"
       - uses: actions/cache@v4
         with:
           path: |
