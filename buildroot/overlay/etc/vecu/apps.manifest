@@ -1,0 +1,9 @@
+[arm64-recovery-service]
+command=/usr/bin/vecu_faultable_service hang-once /tmp/vecu-arm64-hang-once.state
+depends=
+restart=on-failure
+max_restarts=2
+restart_backoff_ms=100
+start_timeout_ms=1500
+heartbeat_timeout_ms=300
+

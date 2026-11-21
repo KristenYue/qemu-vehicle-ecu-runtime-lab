@@ -51,3 +51,54 @@ jobs:
       - shell: pwsh
         run: .\scripts\build_windows.ps1
 
+  arm64-vecu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ARM64 and QEMU dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            g++-aarch64-linux-gnu qemu-system-arm bc bison build-essential cpio file flex \
+            libelf-dev libncurses-dev libssl-dev rsync unzip wget
+      - name: Cross-compile static ARM64 runtime
+        run: |
+          cmake -S . -B arm64-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/cmake/aarch64-linux-gnu.cmake
+          cmake --build arm64-build --target vecu_execution_manager vecu_faultable_service -j2
+          file arm64-build/vecu_execution_manager arm64-build/vecu_faultable_service
+      - name: Checkout pinned Buildroot stable release
+        run: |
+          git clone --depth 1 --branch 2026.08.2 https://gitlab.com/buildroot.org/buildroot.git buildroot-src
+          test "$(git -C buildroot-src rev-parse HEAD)" = "9f070abfd764ade65c02bd9fb483e6121c418dda"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            buildroot-dl
+            ~/.buildroot-ccache
+          key: buildroot-2026.08.2-aarch64-virt-v1
+      - name: Prepare ARM64 root filesystem overlay
+        run: |
+          bash scripts/prepare_arm64_rootfs_overlay.sh \
+            buildroot/overlay arm64-build buildroot-work-overlay
+      - name: Build minimal ARM64 Linux image
+        run: |
+          make -C buildroot-src O=${{ github.workspace }}/buildroot-output qemu_aarch64_virt_defconfig
+          sed -i '/^BR2_ROOTFS_OVERLAY=/d' buildroot-output/.config
+          echo 'BR2_ROOTFS_OVERLAY="${{ github.workspace }}/buildroot-work-overlay"' >> buildroot-output/.config
+          make -C buildroot-src O=${{ github.workspace }}/buildroot-output olddefconfig
+          make -C buildroot-src O=${{ github.workspace }}/buildroot-output \
+            BR2_DL_DIR=${{ github.workspace }}/buildroot-dl \
+            BR2_CCACHE_DIR=$HOME/.buildroot-ccache -j2
+      - name: Boot QEMU ARM64 and collect recovery evidence
+        run: >-
+          python3 scripts/run_qemu_arm64_evidence.py
+          --images ${{ github.workspace }}/buildroot-output/images
+          --output ${{ github.workspace }}/artifacts/qemu-arm64-recovery-evidence.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qemu-arm64-recovery-evidence
+          path: artifacts/qemu-arm64-recovery-evidence.json
+

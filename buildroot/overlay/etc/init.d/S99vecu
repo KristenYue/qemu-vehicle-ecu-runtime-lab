@@ -1,0 +1,22 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    echo "VECU_BOOT_START"
+    echo "VECU_ARCH=$(uname -m)"
+    echo "VECU_KERNEL=$(uname -r)"
+    rm -f /tmp/vecu-arm64-hang-once.state
+    /usr/bin/vecu_execution_manager /etc/vecu/apps.manifest
+    result=$?
+    echo "VECU_MANAGER_EXIT=$result"
+    if [ "$result" -eq 0 ]; then
+      echo "VECU_EVIDENCE_COMPLETE"
+    else
+      echo "VECU_EVIDENCE_FAILED"
+    fi
+    poweroff -f
+    ;;
+  stop)
+    ;;
+esac
+
