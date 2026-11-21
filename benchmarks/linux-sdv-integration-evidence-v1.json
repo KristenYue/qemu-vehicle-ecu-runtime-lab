@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "environment": "linux-x86_64",
+  "managed_service": "sdv-communication-integration-lab/sdv_someip_vehicle_server",
+  "port": 43355,
+  "passed": true,
+  "metrics": {
+    "first_ready_ts_ms": 317704,
+    "adapter_kill_ts_ms": 317706,
+    "recovered_ready_ts_ms": 317905,
+    "kill_to_recovered_ready_ms": 199
+  },
+  "responses": [
+    {"service": "vehicle.state", "method": "GetSnapshot", "client_id": 66, "session_id": 7, "speed_kph": 123.45, "battery_percent": 75, "door_open": false, "all_signal_groups_fresh": true},
+    {"service": "vehicle.state", "method": "GetSnapshot", "client_id": 66, "session_id": 7, "speed_kph": 123.45, "battery_percent": 75, "door_open": false, "all_signal_groups_fresh": true},
+    {"service": "vehicle.state", "method": "GetSnapshot", "client_id": 66, "session_id": 7, "speed_kph": 123.45, "battery_percent": 75, "door_open": false, "all_signal_groups_fresh": true}
+  ],
+  "events": [
+    {"ts_ms": 317702, "event": "started", "app": "vehicle-state-service", "pid": "2667", "restart_count": "0"},
+    {"ts_ms": 317704, "event": "ready", "app": "vehicle-state-service", "pid": "2667"},
+    {"ts_ms": 317706, "event": "exited", "app": "vehicle-state-service", "pid": "2667", "exit_code": "-1", "signal": "9"},
+    {"ts_ms": 317706, "event": "restart_scheduled", "app": "vehicle-state-service", "delay_ms": "100", "restart_count": "1"},
+    {"ts_ms": 317903, "event": "started", "app": "vehicle-state-service", "pid": "2670", "restart_count": "1"},
+    {"ts_ms": 317905, "event": "ready", "app": "vehicle-state-service", "pid": "2670"},
+    {"ts_ms": 317907, "event": "exited", "app": "vehicle-state-service", "pid": "2670", "exit_code": "0", "signal": "0"}
+  ],
+  "raw_output": [
+    "ts_ms=317702 event=started app=vehicle-state-service pid=2667 restart_count=0",
+    "adapter_event=child_started child_pid=2668",
+    "READY port=43355 mode=snapshot requests=2",
+    "adapter_event=child_ready child_pid=2668",
+    "ts_ms=317704 event=ready app=vehicle-state-service pid=2667",
+    "ts_ms=317706 event=exited app=vehicle-state-service pid=2667 exit_code=-1 signal=9",
+    "ts_ms=317706 event=restart_scheduled app=vehicle-state-service delay_ms=100 restart_count=1",
+    "ts_ms=317903 event=started app=vehicle-state-service pid=2670 restart_count=1",
+    "adapter_event=child_started child_pid=2671",
+    "READY port=43355 mode=snapshot requests=2",
+    "adapter_event=child_ready child_pid=2671",
+    "ts_ms=317905 event=ready app=vehicle-state-service pid=2670",
+    "SERVED requests=2 body_handler_executions=0 runtime_trace_events=3 diagnostic_trace_events=0 active_dtcs=0",
+    "adapter_event=child_exited child_pid=2671 normalized_code=0",
+    "ts_ms=317907 event=exited app=vehicle-state-service pid=2670 exit_code=0 signal=0"
+  ]
+}

@@ -97,6 +97,8 @@ python3 scripts/run_linux_recovery_evidence.py \
 
 GitHub Actions `ubuntu-24.04` 首轮实测三类场景全部通过：crash 进程以退出码 42 终止，从回收到新进程 READY 为 200 ms；hang 进程因心跳超时被标记为 `UNHEALTHY` 并收到 SIGKILL，从异常判定到新进程 READY 为 202 ms。它们是单次 x86_64 CI 结果，不是统计分位数或硬实时保证。原始结果与边界见[恢复证据说明](docs/RECOVERY_EVIDENCE.md)。
 
+跨仓库 CI 进一步构建并管理第一项目的真实 SOME/IP 车辆状态服务：首次调用成功后杀死受管适配器及其服务树，Execution Manager 在 199 ms 后恢复 READY；恢复后两次 `vehicle.state/GetSnapshot` 均返回与首次调用一致的 123.45 km/h、75% 电量及四组信号新鲜状态。方法、原始结果和边界见[真实 SDV 服务集成说明](docs/SDV_SERVICE_INTEGRATION.md)。
+
 ## 下一验收点
 
 1. 结构化 JSONL 事件日志与 crash/hang 故障报告；
