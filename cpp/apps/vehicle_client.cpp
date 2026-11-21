@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <string>
 
 int main() {
     const char* fail = std::getenv("VECU_CLIENT_FAIL");
