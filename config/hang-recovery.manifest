@@ -1,0 +1,9 @@
+[recovery-service]
+command=./vecu_faultable_service hang-once /tmp/vecu-hang-once.state
+depends=
+restart=on-failure
+max_restarts=2
+restart_backoff_ms=100
+start_timeout_ms=1000
+heartbeat_timeout_ms=300
+

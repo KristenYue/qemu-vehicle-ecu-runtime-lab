@@ -130,7 +130,8 @@ void ProcessSupervisor::start_ready_processes(std::uint64_t now_ms) {
         if (!eligible) continue;
         if (dependency_failed(process)) {
             process.state = ProcessState::Failed;
-            std::cerr << "event=dependency_failed app=" << process.manifest.name << '\n';
+            std::cerr << "ts_ms=" << now_ms << " event=dependency_failed app="
+                      << process.manifest.name << '\n';
         } else if (dependencies_ready(process)) {
             spawn(process);
         }
@@ -175,7 +176,7 @@ void ProcessSupervisor::spawn(ManagedProcess& process) {
     const int result = posix_spawnp(&pid, arguments.front(), nullptr, nullptr, arguments.data(), environment.data());
     if (result != 0) {
         process.state = ProcessState::Failed;
-        std::cerr << "event=spawn_failed app=" << process.manifest.name
+        std::cerr << "ts_ms=" << monotonic_ms() << " event=spawn_failed app=" << process.manifest.name
                   << " error=" << std::strerror(result) << '\n';
         return;
     }
@@ -183,7 +184,8 @@ void ProcessSupervisor::spawn(ManagedProcess& process) {
     process.state = ProcessState::Starting;
     process.started_at_ms = monotonic_ms();
     process.last_heartbeat_ms = 0;
-    std::cout << "event=started app=" << process.manifest.name << " pid=" << process.pid
+    std::cout << "ts_ms=" << process.started_at_ms << " event=started app=" << process.manifest.name
+              << " pid=" << process.pid
               << " restart_count=" << process.restart_count << '\n';
 }
 
@@ -195,23 +197,27 @@ void ProcessSupervisor::receive_heartbeats(std::uint64_t now_ms) {
             const auto message = parse_heartbeat(std::string(buffer, static_cast<std::size_t>(length)));
             const auto process_it = processes_.find(message.application);
             if (process_it == processes_.end() || process_it->second.pid != message.pid) {
-                std::cerr << "event=heartbeat_rejected reason=identity_mismatch app="
+                std::cerr << "ts_ms=" << now_ms
+                          << " event=heartbeat_rejected reason=identity_mismatch app="
                           << message.application << " pid=" << message.pid << '\n';
                 continue;
             }
             auto& process = process_it->second;
             if (process.state != ProcessState::Starting && process.state != ProcessState::Ready) {
-                std::cerr << "event=heartbeat_rejected reason=invalid_state app="
+                std::cerr << "ts_ms=" << now_ms
+                          << " event=heartbeat_rejected reason=invalid_state app="
                           << message.application << '\n';
                 continue;
             }
             process.last_heartbeat_ms = now_ms;
             if (message.type == HeartbeatMessageType::Ready && process.state == ProcessState::Starting) {
                 process.state = ProcessState::Ready;
-                std::cout << "event=ready app=" << process.manifest.name << " pid=" << process.pid << '\n';
+                std::cout << "ts_ms=" << now_ms << " event=ready app=" << process.manifest.name
+                          << " pid=" << process.pid << '\n';
             }
         } catch (const std::exception& error) {
-            std::cerr << "event=heartbeat_rejected reason=malformed detail=" << error.what() << '\n';
+            std::cerr << "ts_ms=" << now_ms
+                      << " event=heartbeat_rejected reason=malformed detail=" << error.what() << '\n';
         }
     }
 }
@@ -232,9 +238,10 @@ void ProcessSupervisor::enforce_health_deadlines(std::uint64_t now_ms) {
         }
         if (timed_out) {
             process.state = ProcessState::Unhealthy;
-            std::cerr << "event=unhealthy app=" << process.manifest.name << " reason=" << reason << '\n';
+            std::cerr << "ts_ms=" << now_ms << " event=unhealthy app="
+                      << process.manifest.name << " reason=" << reason << '\n';
             if (kill(process.pid, SIGKILL) == -1 && errno != ESRCH) {
-                std::cerr << "event=kill_failed app=" << process.manifest.name
+                std::cerr << "ts_ms=" << now_ms << " event=kill_failed app=" << process.manifest.name
                           << " error=" << std::strerror(errno) << '\n';
             }
         }
@@ -260,7 +267,8 @@ void ProcessSupervisor::handle_exit(ManagedProcess& process, int wait_status, st
     const int code = exited ? WEXITSTATUS(wait_status) : -1;
     const int signal = WIFSIGNALED(wait_status) ? WTERMSIG(wait_status) : 0;
     const bool failure = !exited || code != 0;
-    std::cout << "event=exited app=" << process.manifest.name << " pid=" << process.pid
+    std::cout << "ts_ms=" << now_ms << " event=exited app=" << process.manifest.name
+              << " pid=" << process.pid
               << " exit_code=" << code << " signal=" << signal << '\n';
     process.pid = -1;
 
@@ -271,7 +279,7 @@ void ProcessSupervisor::handle_exit(ManagedProcess& process, int wait_status, st
         ++process.restart_count;
         process.restart_at_ms = now_ms + delay;
         process.state = ProcessState::Backoff;
-        std::cout << "event=restart_scheduled app=" << process.manifest.name
+        std::cout << "ts_ms=" << now_ms << " event=restart_scheduled app=" << process.manifest.name
                   << " delay_ms=" << delay << " restart_count=" << process.restart_count << '\n';
     } else {
         process.state = failure ? ProcessState::Failed : ProcessState::Stopped;

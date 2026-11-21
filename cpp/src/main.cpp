@@ -5,6 +5,8 @@
 #include <iostream>
 
 int main(int argc, char** argv) {
+    std::cout << std::unitbuf;
+    std::cerr << std::unitbuf;
     if (argc != 2) {
         std::cerr << "usage: vecu_execution_manager <manifest>\n";
         return 64;

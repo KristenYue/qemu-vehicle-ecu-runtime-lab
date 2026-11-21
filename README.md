@@ -12,6 +12,7 @@
 - 实现 Linux Execution Manager：`posix_spawnp`、`signalfd(SIGCHLD)`、`epoll`、`timerfd`、子进程回收、退出原因记录、指数退避和重启预算；
 - 实现有界 UDS 心跳协议、应用身份/PID 校验、`STARTING/READY/UNHEALTHY` 状态、启动超时与卡死检测；依赖应用只有在上游 READY 后才启动；
 - 提供两个受管示例进程，验证依赖顺序、异常退出和恢复；
+- 提供正常依赖启动、首次 crash 恢复、首次 hang 恢复三类 Linux 自动化证据场景，并记录故障到重新 READY 的时序；
 - 核心 manifest/依赖图逻辑支持 Windows 与 Linux 构建，Linux 负责真实进程生命周期集成。
 
 当前还没有完成 QEMU/ARM64、Buildroot、cgroups 或第一项目车辆服务接入。README 只陈述已经落地的能力，不把后续规划写成完成项。
@@ -81,6 +82,17 @@ Windows 当前只构建可移植核心与测试：
 - READY 仅表示应用完成项目心跳协议握手，不等于所有业务依赖已经通过深度健康检查；
 - 当前重启预算仅保存在单次 Execution Manager 进程内，不声称跨重启持久化；
 - QEMU 软件仿真数据不会包装成真实 ARM64 硬件性能。
+
+## Linux 故障恢复证据
+
+```bash
+python3 scripts/run_linux_recovery_evidence.py \
+  --manager "$PWD/build/vecu_execution_manager" \
+  --config-dir "$PWD/config" \
+  --output "$PWD/artifacts/linux-recovery-evidence.json"
+```
+
+脚本验证三个独立进程级场景：依赖服务必须在上游 READY 后启动；服务首次异常退出后按预算恢复；服务首次停止心跳后被判定为 `UNHEALTHY`、终止并恢复。报告保留事件顺序和单调时钟差值。只有真实 Linux 执行成功后，报告数字才能进入项目结论。
 
 ## 下一验收点
 

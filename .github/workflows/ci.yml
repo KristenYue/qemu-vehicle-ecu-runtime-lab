@@ -12,9 +12,16 @@ jobs:
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - run: cmake --build build -j2
       - run: ctest --test-dir build --output-on-failure
-      - name: Execution manager smoke test
-        working-directory: build
-        run: timeout 5s ./vecu_execution_manager ../config/apps.manifest | tee execution-manager.log
+      - name: Execution manager recovery evidence
+        run: >-
+          python3 scripts/run_linux_recovery_evidence.py
+          --manager ${{ github.workspace }}/build/vecu_execution_manager
+          --config-dir ${{ github.workspace }}/config
+          --output ${{ github.workspace }}/artifacts/linux-recovery-evidence.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-recovery-evidence
+          path: artifacts/linux-recovery-evidence.json
 
   windows:
     runs-on: windows-2025

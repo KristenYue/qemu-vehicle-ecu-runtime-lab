@@ -31,8 +31,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
   add_executable(vecu_health_service cpp/apps/health_service.cpp)
   add_executable(vecu_vehicle_client cpp/apps/vehicle_client.cpp)
+  add_executable(vecu_faultable_service cpp/apps/faultable_service.cpp)
   target_link_libraries(vecu_health_service PRIVATE vecu_core)
   target_link_libraries(vecu_vehicle_client PRIVATE vecu_core)
+  target_link_libraries(vecu_faultable_service PRIVATE vecu_core)
 endif()
 
 enable_testing()

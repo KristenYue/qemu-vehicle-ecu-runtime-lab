@@ -4,4 +4,6 @@ out/
 *.log
 *.obj
 *.exe
+__pycache__/
+*.pyc
 
