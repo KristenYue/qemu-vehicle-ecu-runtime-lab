@@ -22,6 +22,27 @@ jobs:
         with:
           name: linux-recovery-evidence
           path: artifacts/linux-recovery-evidence.json
+      - name: Checkout SDV communication project
+        uses: actions/checkout@v4
+        with:
+          repository: KristenYue/sdv-communication-integration-lab
+          path: sdv-project
+      - name: Build real SDV vehicle service
+        run: |
+          cmake -S sdv-project -B sdv-build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          cmake --build sdv-build --target sdv_someip_vehicle_server sdv_someip_vehicle_client -j2
+      - name: Real SDV service recovery integration
+        run: >-
+          python3 scripts/run_sdv_service_integration.py
+          --manager ${{ github.workspace }}/build/vecu_execution_manager
+          --adapter ${{ github.workspace }}/build/vecu_managed_process_adapter
+          --sdv-server ${{ github.workspace }}/sdv-build/sdv_someip_vehicle_server
+          --sdv-client ${{ github.workspace }}/sdv-build/sdv_someip_vehicle_client
+          --output ${{ github.workspace }}/artifacts/linux-sdv-integration-evidence.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-sdv-integration-evidence
+          path: artifacts/linux-sdv-integration-evidence.json
 
   windows:
     runs-on: windows-2025

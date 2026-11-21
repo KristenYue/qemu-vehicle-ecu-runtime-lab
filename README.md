@@ -13,6 +13,7 @@
 - 实现有界 UDS 心跳协议、应用身份/PID 校验、`STARTING/READY/UNHEALTHY` 状态、启动超时与卡死检测；依赖应用只有在上游 READY 后才启动；
 - 提供两个受管示例进程，验证依赖顺序、异常退出和恢复；
 - 提供正常依赖启动、首次 crash 恢复、首次 hang 恢复三类 Linux 自动化证据场景，并记录故障到重新 READY 的时序；
+- 使用通用 Managed Process Adapter 管理第一项目的真实 SOME/IP 车辆状态服务；适配器负责 READY 探测、心跳代理和父进程死亡时的服务树回收，不复制车辆服务实现；
 - 核心 manifest/依赖图逻辑支持 Windows 与 Linux 构建，Linux 负责真实进程生命周期集成。
 
 当前还没有完成 QEMU/ARM64、Buildroot、cgroups 或第一项目车辆服务接入。README 只陈述已经落地的能力，不把后续规划写成完成项。
@@ -99,7 +100,7 @@ GitHub Actions `ubuntu-24.04` 首轮实测三类场景全部通过：crash 进�
 ## 下一验收点
 
 1. 结构化 JSONL 事件日志与 crash/hang 故障报告；
-2. 将第一项目的一个只读车辆状态服务作为真实受管应用；
-3. Buildroot ARM64 镜像与 QEMU `virt` 集成测试；
-4. x86_64 与 QEMU ARM64 双环境故障恢复证据。
+2. Buildroot ARM64 镜像与 QEMU `virt` 集成测试；
+3. x86_64 与 QEMU ARM64 双环境故障恢复证据；
+4. cgroups v2 资源上限与观测。
 
