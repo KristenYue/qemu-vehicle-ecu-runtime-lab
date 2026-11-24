@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: QEMU evidence harness regression tests
+        run: python3 -m unittest scripts/test_run_qemu_arm64_evidence.py
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - run: cmake --build build -j2
       - run: ctest --test-dir build --output-on-failure

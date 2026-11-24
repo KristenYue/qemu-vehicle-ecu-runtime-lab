@@ -33,6 +33,25 @@ def require_event(events: list[dict[str, object]], name: str, occurrence: int = 
     return matches[occurrence - 1]
 
 
+def build_qemu_command(qemu: str, kernel: Path, rootfs: Path) -> list[str]:
+    return [
+        qemu,
+        "-M", "virt",
+        "-cpu", "cortex-a53",
+        "-smp", "2",
+        "-m", "512",
+        "-nographic",
+        # The evidence guest is self-contained. Disable QEMU's implicit NIC
+        # instead of depending on the host's optional efi-virtio.rom package.
+        "-nic", "none",
+        "-no-reboot",
+        "-kernel", str(kernel),
+        "-append", "rootwait root=/dev/vda console=ttyAMA0",
+        "-drive", f"file={rootfs},if=none,format=raw,id=hd0",
+        "-device", "virtio-blk-device,drive=hd0",
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--images", type=Path, required=True)
@@ -46,19 +65,7 @@ def main() -> int:
     if not kernel.exists() or rootfs is None:
         raise FileNotFoundError(f"missing Buildroot images in {args.images}")
 
-    command = [
-        args.qemu,
-        "-M", "virt",
-        "-cpu", "cortex-a53",
-        "-smp", "2",
-        "-m", "512",
-        "-nographic",
-        "-no-reboot",
-        "-kernel", str(kernel),
-        "-append", "rootwait root=/dev/vda console=ttyAMA0",
-        "-drive", f"file={rootfs},if=none,format=raw,id=hd0",
-        "-device", "virtio-blk-device,drive=hd0",
-    ]
+    command = build_qemu_command(args.qemu, kernel, rootfs)
     completed = subprocess.run(
         command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         timeout=120, check=False,
