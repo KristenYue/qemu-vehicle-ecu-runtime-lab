@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "environment": "qemu-system-aarch64-tcg",
+  "machine": "virt",
+  "cpu": "cortex-a53",
+  "buildroot_version": "2026.08.2",
+  "guest_kernel": "6.18.7",
+  "passed": true,
+  "artifacts": {
+    "kernel_image_sha256": "0a528b1bab19527b501c833e907b66c6226a67eedbcf2ffbc620acb35448bf8d",
+    "rootfs_sha256": "bbe3f7601d98d6f2198eb62ce62ad820b197866300fb0e5163b837f14674abeb",
+    "execution_manager_sha256": "4675300923ea198c26f8589abf0a289497208b1b583a6d2e6c253b2c44e0c8d7",
+    "faultable_service_sha256": "cff6c019ccc44e1c8c0f57812ad2950749a9ce2b0be71634e1c284d61823fca9"
+  },
+  "metrics": {
+    "first_ready_ts_ms": 17040,
+    "unhealthy_ts_ms": 17406,
+    "restarted_ts_ms": 17608,
+    "recovered_ready_ts_ms": 17611,
+    "unhealthy_to_recovered_ready_ms": 205
+  },
+  "events": [
+    {
+      "ts_ms": 17011,
+      "event": "started",
+      "app": "arm64-recovery-service",
+      "pid": "114",
+      "restart_count": "0"
+    },
+    {
+      "ts_ms": 17040,
+      "event": "ready",
+      "app": "arm64-recovery-service",
+      "pid": "114"
+    },
+    {
+      "ts_ms": 17406,
+      "event": "unhealthy",
+      "app": "arm64-recovery-service",
+      "reason": "heartbeat_timeout"
+    },
+    {
+      "ts_ms": 17409,
+      "event": "exited",
+      "app": "arm64-recovery-service",
+      "pid": "114",
+      "exit_code": "-1",
+      "signal": "9"
+    },
+    {
+      "ts_ms": 17409,
+      "event": "restart_scheduled",
+      "app": "arm64-recovery-service",
+      "delay_ms": "100",
+      "restart_count": "1"
+    },
+    {
+      "ts_ms": 17608,
+      "event": "started",
+      "app": "arm64-recovery-service",
+      "pid": "115",
+      "restart_count": "1"
+    },
+    {
+      "ts_ms": 17611,
+      "event": "ready",
+      "app": "arm64-recovery-service",
+      "pid": "115"
+    },
+    {
+      "ts_ms": 18218,
+      "event": "exited",
+      "app": "arm64-recovery-service",
+      "pid": "115",
+      "exit_code": "0",
+      "signal": "0"
+    }
+  ],
+  "qemu_returncode": 0,
+  "serial_markers": [
+    "VECU_BOOT_START",
+    "VECU_ARCH=aarch64",
+    "VECU_KERNEL=6.18.7",
+    "VECU_MANAGER_SHA256=4675300923ea198c26f8589abf0a289497208b1b583a6d2e6c253b2c44e0c8d7",
+    "VECU_SERVICE_SHA256=cff6c019ccc44e1c8c0f57812ad2950749a9ce2b0be71634e1c284d61823fca9",
+    "ts_ms=17011 event=started app=arm64-recovery-service pid=114 restart_count=0",
+    "ts_ms=17040 event=ready app=arm64-recovery-service pid=114",
+    "ts_ms=17406 event=unhealthy app=arm64-recovery-service reason=heartbeat_timeout",
+    "ts_ms=17409 event=exited app=arm64-recovery-service pid=114 exit_code=-1 signal=9",
+    "ts_ms=17409 event=restart_scheduled app=arm64-recovery-service delay_ms=100 restart_count=1",
+    "ts_ms=17608 event=started app=arm64-recovery-service pid=115 restart_count=1",
+    "ts_ms=17611 event=ready app=arm64-recovery-service pid=115",
+    "ts_ms=18218 event=exited app=arm64-recovery-service pid=115 exit_code=0 signal=0",
+    "VECU_MANAGER_EXIT=0",
+    "VECU_EVIDENCE_COMPLETE"
+  ]
+}

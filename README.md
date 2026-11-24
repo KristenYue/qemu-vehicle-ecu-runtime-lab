@@ -4,7 +4,7 @@
 
 项目主语是：**在 ARM64 嵌入式 Linux/vECU 环境中研发 Execution Manager，管理车载应用的依赖启动、进程生命周期、健康状态、故障恢复与系统证据。** QEMU 和 Buildroot 是可复现运行环境，不是项目唯一成果。
 
-## 当前状态：核心纵切已实现，ARM64/QEMU 验收中
+## 当前状态：核心纵切与 ARM64/QEMU 验收已完成
 
 - 定义版本化应用 manifest，包含命令、依赖、启动超时和受控重启策略；
 - 实现严格解析和校验：拒绝重复应用、未知字段、非法数值、缺失命令和未知依赖；
@@ -14,10 +14,10 @@
 - 提供两个受管示例进程，验证依赖顺序、异常退出和恢复；
 - 提供正常依赖启动、首次 crash 恢复、首次 hang 恢复三类 Linux 自动化证据场景，并记录故障到重新 READY 的时序；
 - 使用通用 Managed Process Adapter 管理第一项目的真实 SOME/IP 车辆状态服务；适配器负责 READY 探测、心跳代理和父进程死亡时的服务树回收，不复制车辆服务实现；
-- 固定 Buildroot 2026.08.2，交叉编译静态 AArch64 Execution Manager 与故障服务，并提供 QEMU `virt`/Cortex-A53 启动、心跳超时、重启和关机的自动验收链路；真实 ARM64 结果只在 CI 成功并冻结原始报告后写入结论；
+- 固定 Buildroot 2026.08.2，交叉编译静态 AArch64 Execution Manager 与故障服务，并通过 QEMU `virt`/Cortex-A53 完成启动、心跳超时、重启和关机的自动验收；报告冻结内核、rootfs 与两只 ARM64 二进制摘要；
 - 核心 manifest/依赖图逻辑支持 Windows 与 Linux 构建，Linux 负责真实进程生命周期集成。
 
-第一项目真实车辆服务接入已经通过 Linux 跨仓库 CI。QEMU/ARM64 正在完成首次端到端验收；README 不把“代码已写”包装成“目标环境已验证”。
+第一项目真实车辆服务接入已通过 Linux 跨仓库 CI；Buildroot/QEMU ARM64 端到端验收也已通过。两条链路分别证明真实车辆服务集成与目标架构运行，不把 QEMU TCG 数据包装成真实 ECU 性能。
 
 ## 项目范围
 
@@ -106,10 +106,15 @@ GitHub Actions `ubuntu-24.04` 首轮实测三类场景全部通过：crash 进�
 
 跨仓库 CI 进一步构建并管理第一项目的真实 SOME/IP 车辆状态服务：首次调用成功后杀死受管适配器及其服务树，Execution Manager 在 199 ms 后恢复 READY；恢复后两次 `vehicle.state/GetSnapshot` 均返回与首次调用一致的 123.45 km/h、75% 电量及四组信号新鲜状态。方法、原始结果和边界见[真实 SDV 服务集成说明](docs/SDV_SERVICE_INTEGRATION.md)。
 
-## 下一验收点
+## QEMU ARM64 端到端证据
 
-1. 跑通并冻结 QEMU ARM64 原始串口报告，记录镜像、内核和二进制摘要；
-2. 对照 x86_64 与 QEMU ARM64 的故障恢复事件，但不把 TCG 时延包装成硬件性能；
-3. 完成核心设计说明、源码阅读路径和可复现实验，使实现能够被独立解释、修改和测试；
-4. 停止横向扩展，后续只修复影响核心链路、复现性和面试可解释性的问题。
+固定 Buildroot 2026.08.2 生成 Linux 6.18.7 镜像，在 QEMU `virt`/Cortex-A53 guest 内运行静态 AArch64 Execution Manager。故障服务 PID 114 停止心跳后被判定为 `UNHEALTHY` 并由 SIGKILL 回收；PID 115 按预算重启并重新 READY。本轮从异常判定到恢复 READY 为单次 205 ms，最终服务与 Manager 均正常退出。
+
+报告冻结 Linux `Image`、rootfs、Execution Manager 和故障服务四项 SHA-256。205 ms 是 GitHub Actions x86_64 host 上 QEMU TCG 的单次结果，不是硬件性能或硬实时保证。完整事件、摘要和边界见 [QEMU ARM64 证据说明](docs/ARM64_QEMU_EVIDENCE.md)。
+
+## 后续维护边界
+
+1. 完成核心设计说明、源码阅读路径和可复现实验，使实现能够被独立解释、修改和测试；
+2. 停止横向扩展，后续只修复影响核心链路、复现性和面试可解释性的问题；
+3. 只有获得真实 ARM64 开发板或目标 ECU 后，才新增硬件性能与系统资源数据，并与 QEMU TCG 结果严格分开。
 
