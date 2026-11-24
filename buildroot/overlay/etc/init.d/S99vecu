@@ -5,6 +5,7 @@ case "$1" in
     echo "VECU_BOOT_START"
     echo "VECU_ARCH=$(uname -m)"
     echo "VECU_KERNEL=$(uname -r)"
+    cat /etc/vecu/runtime.sha256
     rm -f /tmp/vecu-arm64-hang-once.state
     /usr/bin/vecu_execution_manager /etc/vecu/apps.manifest
     result=$?

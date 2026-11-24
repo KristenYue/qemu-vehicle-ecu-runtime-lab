@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shlex
@@ -31,6 +32,22 @@ def require_event(events: list[dict[str, object]], name: str, occurrence: int = 
     if len(matches) < occurrence:
         raise AssertionError(f"missing event {name} occurrence {occurrence}: {events}")
     return matches[occurrence - 1]
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def require_marker(output: str, name: str) -> str:
+    prefix = f"{name}="
+    matches = [line[len(prefix):].strip() for line in output.splitlines() if line.startswith(prefix)]
+    if len(matches) != 1 or not matches[0]:
+        raise AssertionError(f"missing or duplicate serial marker {name}")
+    return matches[0]
 
 
 def build_qemu_command(qemu: str, kernel: Path, rootfs: Path) -> list[str]:
@@ -96,6 +113,9 @@ def main() -> int:
         fail("guest evidence did not complete")
 
     events = parse_events(serial)
+    guest_kernel = require_marker(serial, "VECU_KERNEL")
+    manager_sha256 = require_marker(serial, "VECU_MANAGER_SHA256")
+    service_sha256 = require_marker(serial, "VECU_SERVICE_SHA256")
     first_ready = require_event(events, "ready", 1)
     unhealthy = require_event(events, "unhealthy", 1)
     restarted = require_event(events, "started", 2)
@@ -112,7 +132,14 @@ def main() -> int:
         "machine": "virt",
         "cpu": "cortex-a53",
         "buildroot_version": "2026.08.2",
+        "guest_kernel": guest_kernel,
         "passed": True,
+        "artifacts": {
+            "kernel_image_sha256": sha256_file(kernel),
+            "rootfs_sha256": sha256_file(rootfs),
+            "execution_manager_sha256": manager_sha256,
+            "faultable_service_sha256": service_sha256,
+        },
         "metrics": {
             "first_ready_ts_ms": int(first_ready["ts_ms"]),
             "unhealthy_ts_ms": int(unhealthy["ts_ms"]),

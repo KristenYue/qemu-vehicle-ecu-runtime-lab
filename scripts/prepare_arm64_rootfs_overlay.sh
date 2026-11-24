@@ -18,6 +18,11 @@ install -m 0755 "$arm64_build/vecu_execution_manager" "$output_overlay/usr/bin/"
 install -m 0755 "$arm64_build/vecu_faultable_service" "$output_overlay/usr/bin/"
 chmod 0755 "$output_overlay/etc/init.d/S99vecu"
 
+manager_sha=$(sha256sum "$output_overlay/usr/bin/vecu_execution_manager" | cut -d ' ' -f 1)
+service_sha=$(sha256sum "$output_overlay/usr/bin/vecu_faultable_service" | cut -d ' ' -f 1)
+printf 'VECU_MANAGER_SHA256=%s\nVECU_SERVICE_SHA256=%s\n' \
+  "$manager_sha" "$service_sha" > "$output_overlay/etc/vecu/runtime.sha256"
+
 file "$output_overlay/usr/bin/vecu_execution_manager"
 file "$output_overlay/usr/bin/vecu_faultable_service"
 

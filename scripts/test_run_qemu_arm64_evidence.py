@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -38,6 +39,17 @@ class QemuEvidenceTest(unittest.TestCase):
         self.assertEqual(events[0]["reason"], "heartbeat_timeout")
         self.assertEqual(events[1]["event"], "ready")
         self.assertEqual(events[1]["pid"], "42")
+
+    def test_marker_and_file_digest_are_reproducible(self) -> None:
+        serial = "VECU_KERNEL=6.18.7\nVECU_MANAGER_SHA256=abc123\n"
+        self.assertEqual(MODULE.require_marker(serial, "VECU_KERNEL"), "6.18.7")
+        with tempfile.TemporaryDirectory() as directory:
+            artifact = Path(directory) / "artifact.bin"
+            artifact.write_bytes(b"vecu")
+            self.assertEqual(
+                MODULE.sha256_file(artifact),
+                "d4070b344a428ff66bf22a911f414c93de7d5246b21afdbadd4f884caad786c3",
+            )
 
 
 if __name__ == "__main__":
